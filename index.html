@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Regressão Selic 2023</title>
+    <!-- Chart.js deve ser carregado antes do script principal -->
+</head>
+<body>
+    <canvas id="myChart" width="800" height="400"></canvas>
+    <div id="r2-value" style="font-size:1.2em; margin-top:16px;"></div>
+    <script src="chart.min.js"></script>
+    <script>
+        // Dados: índices (x) e taxas Selic (y)
+        const x = Array.from({ length: 243 }, (_, i) => i);
+        const y = [
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788,
+            0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.050788, 0.049037, 0.049037,
+            0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037,
+            0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037,
+            0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.049037, 0.047279, 0.047279, 0.047279,
+            0.047279, 0.047279, 0.047279, 0.047279, 0.047279, 0.047279, 0.047279, 0.047279, 0.047279, 0.047279,
+            0.047279, 0.047279, 0.047279, 0.047279, 0.047279, 0.047279, 0.047279, 0.047279, 0.047279, 0.047279,
+            0.047279, 0.047279, 0.047279, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513,
+            0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513,
+            0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.045513, 0.043739,
+            0.043739, 0.043739, 0.043739, 0.043739, 0.043739, 0.043739, 0.043739, 0.043739, 0.043739
+        ];
+
+        // Regressão linear manual
+        function linearRegression(x, y) {
+            const n = x.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+
+
+
+            for (let i = 0; i < n; i++) {
+                sumX += x[i];
+                sumY += y[i];
+                sumXY += x[i] * y[i];
+                sumXX += x[i] * x[i];
+            }
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+
+            
+
+
+            return { slope, intercept };
+        }
+
+        // Calcular regressão
+        const { slope, intercept } = linearRegression(x, y);
+
+        // Calcular R²
+        const n = x.length;
+        const mediaY = y.reduce((acc, val) => acc + val, 0) / n;
+        let somaTotal = 0;
+        let somaResiduos = 0;
+        for (let i = 0; i < n; i++) {
+            const yEstimado = slope * x[i] + intercept;
+            somaTotal += Math.pow(y[i] - mediaY, 2);
+            somaResiduos += Math.pow(y[i] - yEstimado, 2);
+        }
+        let r2;
+        if (somaTotal === 0) {
+            r2 = NaN;
+        } else {
+            r2 = 1 - (somaResiduos / somaTotal);
+        }
+
+        // Pontos para a linha de regressão
+        const xRange = [0, x.length - 1];
+        const yPredicted = xRange.map(xi => slope * xi + intercept);
+
+        // Gráfico com Chart.js
+        const ctx = document.getElementById('myChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'Selic',
+                        data: x.map((xi, i) => ({ x: xi, y: y[i] })),
+                        backgroundColor: 'red',
+                        pointRadius: 3
+                    },
+                    {
+                        label: 'Regressão',
+                        data: xRange.map((xi, i) => ({ x: xi, y: yPredicted[i] })),
+                        type: 'line',
+                        borderColor: 'blue',
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    x: { title: { display: true, text: 'Dia' } },
+                    y: { title: { display: true, text: 'Taxa Selic' } }
+                },
+                plugins: {
+                    title: { display: true, text: 'Taxa Selic 2023' }
+                }
+            }
+        });
+
+        // Mostrar coeficientes
+    console.log('Inclinação:' + slope);
+    console.log('Interceptação:', intercept);
+    if (isFinite(r2)) {
+        document.getElementById('r2-value').textContent = `R² da regressão: ${r2.toFixed(4)}`;
+    } else {
+        document.getElementById('r2-value').textContent = 'R² não pode ser calculado (variância total zero)';
+    }
+    </script>
+</body>
+</html>
